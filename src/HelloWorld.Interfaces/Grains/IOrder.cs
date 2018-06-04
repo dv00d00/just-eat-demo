@@ -10,5 +10,7 @@ namespace HelloWorld.Interfaces
 
         [AlwaysInterleave]
         Task<string> GetState();
+
+        Task<int> GetHandledEventsCount();
     }
 }

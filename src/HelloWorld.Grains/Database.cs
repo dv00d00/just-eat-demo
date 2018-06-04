@@ -6,7 +6,6 @@ using Orleans.Streams;
 
 namespace HelloWorld.Grains
 {
-    [ImplicitStreamSubscription(WellKnownIds.DatabaseUpdatesNamespace)]
     public class Database : Grain, IDatabase
     {
         public override async Task OnActivateAsync()
