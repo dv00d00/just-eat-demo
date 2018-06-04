@@ -1,4 +1,6 @@
-﻿namespace HelloWorld.Interfaces
+﻿using Orleans.Concurrency;
+
+namespace HelloWorld.Interfaces
 {
 
     public enum Event
@@ -8,6 +10,7 @@
         Completed
     }
 
+    [Immutable]
     public class OrderEvent
     {
         public string Id { get; set; }

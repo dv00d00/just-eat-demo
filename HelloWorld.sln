@@ -18,13 +18,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Observables", "ClassLibrary1\Observables.csproj", "{86C2DA77-6F0F-4D12-8476-929BE2284BF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Observables", "ClassLibrary1\Observables.csproj", "{86C2DA77-6F0F-4D12-8476-929BE2284BF9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Orleans", "Orleans", "{6EEA23A2-5DBF-483D-98A8-18F28BA79E4F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Rx", "Rx", "{E966655D-0030-446B-A435-E7044E8F156F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{D9C90EBC-F477-40E7-9496-8663A371F1C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,10 +50,6 @@ Global
 		{86C2DA77-6F0F-4D12-8476-929BE2284BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86C2DA77-6F0F-4D12-8476-929BE2284BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86C2DA77-6F0F-4D12-8476-929BE2284BF9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D9C90EBC-F477-40E7-9496-8663A371F1C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D9C90EBC-F477-40E7-9496-8663A371F1C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D9C90EBC-F477-40E7-9496-8663A371F1C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D9C90EBC-F477-40E7-9496-8663A371F1C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

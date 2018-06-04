@@ -2,6 +2,8 @@
 using Orleans;
 using Orleans.Runtime;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -25,7 +27,19 @@ namespace OrleansClient
             {
                 using (var client = await StartClientWithRetries())
                 {
-                    await DoClientWork(client);
+                    
+                    var (time, count) = await DoClientWork(client);
+
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine("Duration " + time);
+                    Console.WriteLine("Total events " + count);
+                    Console.WriteLine("Throughput " + count * 1.0 / time.TotalSeconds);
+                    
                     Console.ReadKey();
                 }
 
@@ -77,28 +91,33 @@ namespace OrleansClient
             return client;
         }
 
-        private static async Task DoClientWork(IClusterClient client)
+        private static async Task<(TimeSpan, int)> DoClientWork(IClusterClient client)
         {
-            var orderIds = Enumerable.Range(1, 1500).Select(it => it.ToString());
-            var orders = orderIds.Select(id => client.GetGrain<IOrder>(id)).ToArray();
-            var tasks = orders.Select(UpdateOrder);
+            const int eventsPerOrder = 400;
+            const int ordersCount = 1000;
+            
+            var orderIds = Enumerable.Range(1, ordersCount).Select(_ => Guid.NewGuid().ToString());
+            var orders = orderIds.Select(id => client.GetGrain<IOrder>(id));
+
+            var stopwatch = Stopwatch.StartNew();
+            
+            IEnumerable<Task> tasks = orders.Select(UpdateOrder);
 
             await Task.WhenAll(tasks);
 
-            var recent = client.GetGrain<IRecentOrders>(WellKnownIds.OrderUpdates);
+            async Task UpdateOrder(IOrder order)
+            {
+                await order.Handle("created");
+                
+                for (int i = 0; i < eventsPerOrder; i++)
+                {
+                    await order.Handle("item added");
+                }
 
+                await order.Handle("checked out");
+            }
 
-            var states = await recent.GetStates();
-
-            Console.WriteLine(states.Length);
-        }
-
-        private static async Task UpdateOrder(IOrder order)
-        {
-            await order.Handle("created");
-            await order.Handle("item added");
-            await order.Handle("item added");
-            await order.Handle("checked out");
+            return (stopwatch.Elapsed, (eventsPerOrder + 2) * ordersCount);
         }
     }
 }

@@ -1,87 +1,57 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using HelloWorld.Interfaces;
-using Microsoft.Extensions.Logging;
 using Orleans;
-using Orleans.Concurrency;
 using Orleans.Streams;
 
 namespace HelloWorld.Grains
 {
-    public struct Eq : IEqualityComparer<IGrainWithStringKey>
-    {
-        public bool Equals(IGrainWithStringKey x, IGrainWithStringKey y)
-        {
-            if (x == null || y == null) return false;
-            return x.GetPrimaryKeyString().Equals(y.GetPrimaryKeyString());
-        }
-
-        public int GetHashCode(IGrainWithStringKey obj) => obj.GetPrimaryKeyString().GetHashCode();
-    }
-
-    [ImplicitStreamSubscription("Orders")]
+    [ImplicitStreamSubscription(WellKnownIds.StreamOrdersNamespace)]
     public class RecentOrders : Grain, IRecentOrders
     {
-        private readonly ILogger<RecentOrders> _logger;
-        private StreamSubscriptionHandle<OrderEvent> _handle;
-        private Subject<OrderEvent> _subject;
-        private IDisposable disposable;
-
-        public RecentOrders(ILogger<RecentOrders> logger)
-        {
-            _logger = logger;
-            _subject = new Subject<OrderEvent>();
-        }
-
-        private HashSet<IOrder> Orders { get; } = new HashSet<IOrder>(new Eq());
+        private HashSet<string> OrderIds = new HashSet<string>();
         
         public override async Task OnActivateAsync()
         {
             var provider = GetStreamProvider(WellKnownIds.StreamProvider);
-            var asyncStream = provider.GetStream<OrderEvent>(WellKnownIds.OrderUpdates, WellKnownIds.StreamOrdersNamespace);
-            
-            disposable = _subject
-                .Where(it => it.Event == Event.Created)
-                .Buffer(TimeSpan.FromSeconds(0.5))
-                .Subscribe(next =>
-                {
-                    Console.WriteLine($"Adding orders {next.Count}");
 
-                    foreach (var orderEvent in next)
-                    {
-                        var order = GrainFactory.GetGrain<IOrder>(orderEvent.Id);
-                        this.Orders.Add(order);
-                    }
-                });
+            var input = provider.GetStream<OrderEvent>(WellKnownIds.OrderUpdates, WellKnownIds.StreamOrdersNamespace);
+            var output = provider.GetStream<Changes>(WellKnownIds.DatabaseUpdates, WellKnownIds.DatabaseUpdatesNamespace);
 
-            _handle = await asyncStream.SubscribeAsync((@event, token) =>
+            await input.SubscribeAsync((@event, token) =>
             {
-                _subject.OnNext(@event);
+                OnEvent(@event);
                 return Task.CompletedTask;
             });
+
+            RegisterTimer(_ => SaveOrders(output), null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
 
             await base.OnActivateAsync();
         }
 
-        public override async Task OnDeactivateAsync()
+        private async Task SaveOrders(IAsyncStream<Changes> output)
         {
-            await base.OnDeactivateAsync();
-            disposable?.Dispose();
-            await _handle.UnsubscribeAsync();
+            if (OrderIds.Count == 0)
+            {
+                Console.WriteLine("RecentOrders: No updates over last 20 seconds");
+                return;
+            }
+
+            var orders = OrderIds.Select(x => GrainFactory.GetGrain<IOrder>(x));
+            var states = await Task.WhenAll(orders.Select(x => x.GetState()));
+
+            Console.WriteLine($"RecentOrders: Notifing database about new batch; Batch size = {states.Length}");
+
+            output.OnNextAsync(new Changes { NewStates = states });
+
+            OrderIds.Clear();
         }
 
-        public Task<string[]> GetOrders()
+        private void OnEvent(OrderEvent @event)
         {
-            return Task.FromResult(Orders.Select(it => it.GetPrimaryKeyString()).ToArray());
-        }
-
-        public Task<string[]> GetStates()
-        {
-            return Task.WhenAll(Orders.Select(x => x.GetState()));
+            OrderIds.Add(@event.Id);
         }
     }
 }

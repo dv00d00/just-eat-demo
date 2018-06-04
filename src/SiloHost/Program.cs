@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using HelloWorld.Grains;
 using HelloWorld.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
@@ -40,6 +41,11 @@ namespace OrleansSiloHost
         {
             // define the cluster configuration
             var builder = new SiloHostBuilder()
+                //.ConfigureLogging(s =>
+                //{
+                //    s.AddConsole();
+                //    s.SetMinimumLevel(LogLevel.Warning);
+                //})
                 .AddSimpleMessageStreamProvider(WellKnownIds.StreamProvider)
                 .AddMemoryGrainStorage("PubSubStore")
                 .UseLocalhostClustering()
@@ -49,7 +55,13 @@ namespace OrleansSiloHost
                     options.ServiceId = "HelloWorldApp";
                 })
                 .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
-                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(Order).Assembly).WithReferences());
+                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(Order).Assembly).WithReferences())
+                .AddStartupTask(async (sp, ct) =>
+                {
+                    var grainFactory = sp.GetRequiredService<IGrainFactory>();
+                    var database = grainFactory.GetGrain<IDatabase>("elasticsearch-dev");
+                    await database.Initialize();
+                });
                 
 
             var host = builder.Build();
