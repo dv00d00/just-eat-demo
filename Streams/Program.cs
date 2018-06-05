@@ -6,6 +6,7 @@ using Akka;
 using Akka.Actor;
 using Akka.Streams;
 using Akka.Streams.Dsl;
+using Akka.Util.Internal;
 using AutoFixture;
 using Reactive.Streams;
 
@@ -13,6 +14,8 @@ namespace Reactive.Tweets
 {
     static class Program
     {
+        const int MAX_CONCURENT_ORDERS = 20_000;
+
         static void Main(string[] args)
         {
             var random = new Random();
@@ -23,18 +26,20 @@ namespace Reactive.Tweets
             fixture.Register(() => guids[random.Next(guids.Length)]);
 
             var source = Source
-                .Tick(TimeSpan.Zero, TimeSpan.FromSeconds(0.1), 0)
+                .Tick(TimeSpan.Zero, TimeSpan.FromSeconds(0.2), 0)
                 .Select(_ => fixture.Create<Event>());
 
-            var flow = (Flow<Event, IEnumerable<Event>, NotUsed>) Flow.Create<Event>()
-                .GroupBy(100, x => x.Id)
+            var flow = Flow.Create<Event>()
+                .GroupBy(MAX_CONCURENT_ORDERS, x => x.Id)
                 .GroupedWithin(100, TimeSpan.FromSeconds(5))
-                .MergeSubstreams();
+                .Select(x => x.OrderBy(it => it.DateTime).ToArray())
+                .MergeSubstreams()
+                .AsInstanceOf<Flow<Event, Event[], NotUsed>>();
 
-            var sink = Sink.ForEach<IEnumerable<Event>>(x =>
+            var sink = Sink.ForEach<Event[]>(x =>
             {
-                Console.WriteLine(string.Join("; ", x));
-                Console.WriteLine("");
+                var id = x.First().Id;
+                Console.WriteLine($"{DateTime.Now:HH:mm:ss} {id} [{string.Join<Event>("; ", x)}]");
             });
 
             using (var sys = ActorSystem.Create("Streams-Sample"))
@@ -63,6 +68,6 @@ namespace Reactive.Tweets
         public EventKind EventKind;
         public DateTime DateTime;
 
-        public override string ToString() => Id + ": " + EventKind.ToString();
+        public override string ToString() => EventKind.ToString();
     }
 }

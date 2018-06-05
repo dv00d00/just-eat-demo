@@ -8,14 +8,19 @@ namespace HelloWorld.Grains
 {
     public class Order : Grain, IOrder
     {
+        private readonly IStreamProvider provider;
         private List<string> Events { get; } = new List<string>();
         private int HandledEvents = 0;
 
         private IAsyncStream<OrderEvent> _asyncStream;
 
+        public Order(IStreamProvider streamProvider)
+        {
+            provider = streamProvider;
+        }
+
         public override async Task OnActivateAsync()
         {
-            var provider = GetStreamProvider(WellKnownIds.StreamProvider);
             _asyncStream = provider.GetStream<OrderEvent>(WellKnownIds.OrderUpdates, WellKnownIds.StreamOrdersNamespace);
             // await _asyncStream.OnNextAsync(new OrderEvent(this.GetPrimaryKeyString(), Event.Created));
             await base.OnActivateAsync();

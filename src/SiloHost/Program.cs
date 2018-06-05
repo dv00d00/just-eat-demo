@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using Orleans.Runtime;
+using Orleans.Streams;
 
 namespace OrleansSiloHost
 {
@@ -41,14 +43,13 @@ namespace OrleansSiloHost
         {
             // define the cluster configuration
             var builder = new SiloHostBuilder()
-                //.ConfigureLogging(s =>
-                //{
-                //    s.AddConsole();
-                //    s.SetMinimumLevel(LogLevel.Warning);
-                //})
                 .AddSimpleMessageStreamProvider(WellKnownIds.StreamProvider)
                 .AddMemoryGrainStorage("PubSubStore")
                 .UseLocalhostClustering()
+                .ConfigureServices(sp =>
+                {
+                    sp.AddTransient(f => f.GetRequiredServiceByName<IStreamProvider>(WellKnownIds.StreamProvider));
+                })
                 .Configure<ClusterOptions>(options =>
                 {
                     options.ClusterId = "dev";

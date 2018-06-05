@@ -12,15 +12,19 @@ namespace HelloWorld.Grains
     [ImplicitStreamSubscription(WellKnownIds.StreamOrdersNamespace)]
     public class Partner : Grain, IPartner
     {
-        private readonly HashSet<string> AllSeenOrderIds = new HashSet<string>();
+        private readonly IStreamProvider provider;
 
-        private HashSet<string> OrderIds = new HashSet<string>();
-        private int TotalEvents = 0;
-        
+        private HashSet<string> AllSeenOrderIds { get; }= new HashSet<string>();
+        private HashSet<string> OrderIds  = new HashSet<string>();
+        private int TotalEvents { get; set; } = 0;
+
+        public Partner(IStreamProvider provider)
+        {
+            this.provider = provider;
+        }
+
         public override async Task OnActivateAsync()
         {
-            var provider = GetStreamProvider(WellKnownIds.StreamProvider);
-
             var input = provider.GetStream<OrderEvent>(WellKnownIds.OrderUpdates, WellKnownIds.StreamOrdersNamespace);
             var output = provider.GetStream<Changes>(WellKnownIds.DatabaseUpdates, WellKnownIds.DatabaseUpdatesNamespace);
 

@@ -8,9 +8,15 @@ namespace HelloWorld.Grains
 {
     public class Database : Grain, IDatabase
     {
+        private readonly IStreamProvider provider;
+
+        public Database(IStreamProvider provider)
+        {
+            this.provider = provider;
+        }
+
         public override async Task OnActivateAsync()
         {
-            var provider = GetStreamProvider(WellKnownIds.StreamProvider);
             var input = provider.GetStream<Changes>(WellKnownIds.DatabaseUpdates, WellKnownIds.DatabaseUpdatesNamespace);
             await input.SubscribeAsync(async (data, token) =>
             {
