@@ -53,7 +53,7 @@ namespace Observables
         public static void Main()
         {
             var disposable = Generate.Events()
-                .GroupByUntil(x => x.Id, _ => Observable.Timer(TimeSpan.FromSeconds(3)))
+                .GroupByUntil(x => x.Id, _ => Observable.Timer(TimeSpan.FromSeconds(5)))
                 .SelectMany(x => x.ToList().Select(y => new {lst = y, key = x.Key}))
                 .Subscribe(it =>
                 {

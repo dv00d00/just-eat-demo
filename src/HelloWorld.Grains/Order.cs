@@ -30,14 +30,14 @@ namespace HelloWorld.Grains
         {
             this.Events.Add(@event);
             this.HandledEvents++;
-
+            
+            await Task.Delay(350);
             await _asyncStream.OnNextAsync(new OrderEvent(this.GetPrimaryKeyString(), Event.Updated));
         }
 
         public Task<string> GetState()
         {
             var stringifiedState = string.Join(", ", Events);
-                
             return Task.FromResult(stringifiedState);
         }
 

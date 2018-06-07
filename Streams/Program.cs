@@ -14,16 +14,16 @@ namespace Reactive.Tweets
 {
     static class Program
     {
-        const int MAX_CONCURENT_ORDERS = 20_000;
+        const int MAX_CONCURENT_ORDERS = 200_000;
 
         static void Main(string[] args)
         {
             var random = new Random();
-
-            var guids = new[] {"A", "B", "C", "D", "E"};
+            
+            var ids = new[] {"A", "B", "C", "D", "E", "F"};
 
             var fixture = new Fixture();
-            fixture.Register(() => guids[random.Next(guids.Length)]);
+            fixture.Register(() => ids[random.Next(ids.Length)]);
 
             var source = Source
                 .Tick(TimeSpan.Zero, TimeSpan.FromSeconds(0.2), 0)
@@ -45,9 +45,9 @@ namespace Reactive.Tweets
             using (var sys = ActorSystem.Create("Streams-Sample"))
             using (var mat = sys.Materializer())
             {
-                // Start Akka.Net stream
-                source.Via(flow).ToMaterialized(sink, Keep.Both).Run(mat);
+                var (handle, task) = source.Via(flow).ToMaterialized(sink, Keep.Both).Run(mat);
                 Console.ReadLine();
+                handle.Cancel();
             }
         }
     }

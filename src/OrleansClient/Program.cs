@@ -45,6 +45,18 @@ namespace OrleansClient
                     var i = await client.GetGrain<IPartner>(WellKnownIds.OrderUpdates).TotalHandledEvents();
                     Console.WriteLine("Total handled events as reported by actors = " + i);
                     Console.ReadKey();
+
+                    i = await client.GetGrain<IPartner>(WellKnownIds.OrderUpdates).TotalHandledEvents();
+                    Console.WriteLine("Total handled events as reported by actors = " + i);
+                    Console.ReadKey();
+
+                    i = await client.GetGrain<IPartner>(WellKnownIds.OrderUpdates).TotalHandledEvents();
+                    Console.WriteLine("Total handled events as reported by actors = " + i);
+                    Console.ReadKey();
+
+                    i = await client.GetGrain<IPartner>(WellKnownIds.OrderUpdates).TotalHandledEvents();
+                    Console.WriteLine("Total handled events as reported by actors = " + i);
+                    Console.ReadKey();
                 }
 
                 return 0;
@@ -97,15 +109,15 @@ namespace OrleansClient
 
         private static async Task<(TimeSpan, int)> DoClientWork(IClusterClient client)
         {
-            const int eventsPerOrder = 300;
-            const int ordersCount = 2000;
+            const int eventsPerOrder = 120;
+            const int ordersCount = 8000;
             
             var orderIds = Enumerable.Range(1, ordersCount).Select(_ => Guid.NewGuid().ToString());
             var orders = orderIds.Select(id => client.GetGrain<IOrder>(id));
             
             var stopwatch = Stopwatch.StartNew();
             
-            await orders.ForEachAsync(UpdateOrder, 1250);
+            await orders.ForEachAsync(UpdateOrder, 3000);
 
             async Task UpdateOrder(IOrder order)
             {
@@ -162,5 +174,4 @@ namespace OrleansClient
             return tasks;
         }
     }
-
 }
