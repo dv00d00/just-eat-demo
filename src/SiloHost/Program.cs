@@ -46,6 +46,7 @@ namespace OrleansSiloHost
                 .AddSimpleMessageStreamProvider(WellKnownIds.StreamProvider)
                 .AddMemoryGrainStorage("PubSubStore")
                 .UseLocalhostClustering()
+                .UseDashboard(options => { options.Port = 8088; })
                 .ConfigureServices(sp =>
                 {
                     sp.AddTransient(f => f.GetRequiredServiceByName<IStreamProvider>(WellKnownIds.StreamProvider));

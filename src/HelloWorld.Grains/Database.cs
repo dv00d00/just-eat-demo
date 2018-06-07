@@ -15,13 +15,15 @@ namespace HelloWorld.Grains
             this.provider = provider;
         }
 
+
+
         public override async Task OnActivateAsync()
         {
             var input = provider.GetStream<Changes>(WellKnownIds.DatabaseUpdates, WellKnownIds.DatabaseUpdatesNamespace);
             await input.SubscribeAsync(async (data, token) =>
             {
                 Console.WriteLine($"DATABASE: Starting saving of {data.NewStates.Count} updated orders");
-                await Task.Delay(TimeSpan.FromSeconds(15));
+                await Task.Delay(TimeSpan.FromSeconds(5));
                 Console.WriteLine($"DATABASE: Saved {data.NewStates.Count} updated orders");
             });
 

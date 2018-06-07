@@ -48,6 +48,8 @@ namespace HelloWorld.Grains
 
         public async Task<(int byOrders, int byPartner)> TotalHandledEvents()
         {
+            Console.WriteLine("Partner: TotalHandledEvents start");
+
             var orders = AllSeenOrderIds.Select(x => GrainFactory.GetGrain<IOrder>(x));
             var sums = await Task.WhenAll(orders.Select(o => o.GetHandledEventsCount()));
             return (sums.Sum(), TotalEvents);
@@ -60,11 +62,11 @@ namespace HelloWorld.Grains
             
             if (set.Count == 0)
             {
-                Console.WriteLine("RecentOrders: No updates over last 5 seconds");
+                Console.WriteLine("Partner: No updates over last 5 seconds");
             }
             else
             {
-                Console.WriteLine($"RecentOrders: Sending {set.Count} events to database");
+                Console.WriteLine($"Partner: Sending {set.Count} events to database");
                 var orders = set.Select(x => GrainFactory.GetGrain<IOrder>(x));
                 var states = await Task.WhenAll(orders.Select(x => x.GetState()));
 

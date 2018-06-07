@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using Akka;
 using Akka.Actor;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Util.Internal;
 using AutoFixture;
-using Reactive.Streams;
 
 namespace Reactive.Tweets
 {
@@ -39,7 +36,7 @@ namespace Reactive.Tweets
             var sink = Sink.ForEach<Event[]>(x =>
             {
                 var id = x.First().Id;
-                Console.WriteLine($"{DateTime.Now:HH:mm:ss} {id} [{string.Join<Event>("; ", x)}]");
+                Console.WriteLine($"{DateTime.Now:mm:ss.fff} {id} [{string.Join<Event>("; ", x)}]");
             });
 
             using (var sys = ActorSystem.Create("Streams-Sample"))

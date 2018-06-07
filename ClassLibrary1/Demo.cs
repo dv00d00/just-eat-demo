@@ -32,10 +32,7 @@ namespace Observables
         {
             var random = new Random();
 
-            var guids = Enumerable
-                .Range(0, 5)
-                .Select(_ => Guid.NewGuid().ToString("N").Substring(0, 8))
-                .ToArray();
+            var guids = new[] {"A", "B", "C", "D", "E", "F"};
 
             var fixture = new Fixture();
             fixture.Register(() => guids[random.Next(guids.Length)]);
@@ -49,7 +46,6 @@ namespace Observables
 
     public class Demo
     {
-
         public static void Main()
         {
             var disposable = Generate.Events()
@@ -58,7 +54,7 @@ namespace Observables
                 .Subscribe(it =>
                 {
                     var format = string.Join(", ", it.lst);
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} {it.key}: {format}");
+                    Console.WriteLine($"{DateTime.Now:mm:ss.fff} {it.key} : {format}");
                 });
 
             using (disposable)
@@ -66,7 +62,5 @@ namespace Observables
                 Console.ReadLine();        
             }
         }
-
-        
     }
 }

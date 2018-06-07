@@ -45,7 +45,7 @@
     grain = C# class
     silo = machine
     cluster = bunch of machines talking to each other, balancing grains
-    activation = instance of an grain (object)
+    activation = instance of a grain (object)
     actor reference = address of an activation (referentially transparent) which can be used to talk to it
 
 ## Extra orleans features

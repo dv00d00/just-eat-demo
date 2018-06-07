@@ -31,7 +31,7 @@ namespace HelloWorld.Grains
             this.Events.Add(@event);
             this.HandledEvents++;
             
-            await Task.Delay(350);
+            await Task.Delay(50);
             await _asyncStream.OnNextAsync(new OrderEvent(this.GetPrimaryKeyString(), Event.Updated));
         }
 
